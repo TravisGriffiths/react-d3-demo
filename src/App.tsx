@@ -20,7 +20,10 @@ const App: React.FC = () => {
   return (
     <AppContainer>
         <Panel copy={piePanelCopy} />
-         <Pie data={getSalesByManufacturer(sourceData)}  />
+         <Pie 
+          title="Car Sales by Manufacturer"
+          data={getSalesByManufacturer(sourceData)} 
+          size={{width: 800, height: 600}}  />
 
     </AppContainer>
 

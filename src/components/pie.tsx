@@ -2,48 +2,61 @@ import { CarDataSchema } from "../constants/data";
 import React from "react";
 import { RightContainer } from "./containers";
 import styled from "styled-components";
-import { descending,  rank } from 'd3-array';
+import { descending, max,  rank } from 'd3-array';
 import { arc, pie } from "d3-shape";
-import { Datum, Size } from "../types";
+import { KeyValuePair, Point, Size } from "../types";
+import { getTopNEntriesWithAggrigatedOther, sortDecending } from "../utils";
+import { CategoryPaletteA } from "../constants/palettes";
 
-const MAX_WEDGES = 12;
+const MAX_WEDGES = 12; // too many wedges is impossible to read
 
 
-type PieData = {
-   data: Map<string, number>,
-   size: Size,
+interface PieData {
+   title: string;
+   data: Map<string, number>;
+   size: Size;
 }
 
-const Pie: React.FC<PieData> = ({data}) => {
-   /* Need to do some cleanup as only a certain number of wedges graph well */
-   const entries = Array.from(data).map((entry) => ({label: entry[0], value: entry[1]}))
-   const rankings = rank(entries, (a: Datum, b: Datum) => descending(a.value, b.value))
-   let otherCategoryValue = 0
-   rankings.forEach((rank, index) => {
-      if(rank > MAX_WEDGES) {
-         otherCategoryValue += data.get(entries[index]?.label) || 0
-         data.delete(entries[index]?.label)
-      }
-   });
-   data.set('Others', otherCategoryValue)
+interface WedgeMetaData {
+   index: number;
+   label: string;
+   className: string;
+   centroid: Point;
+   color: string;
+}
 
-   const wedges = pie()(Array.from(data).map((d) => d[1]))
-   const arcGenerator = arc()
+const Pie: React.FC<PieData> = ({data, size, title}) => {
+   /* Need to do some cleanup as only a certain number of wedges graph well */
+   const aggregated = getTopNEntriesWithAggrigatedOther(data, MAX_WEDGES)
+   
+   const center = {x: Math.floor(size.width / 2), y: Math.floor(size.height / 2)}
+   const longestSize = max([size.height, size.width])
+   const radius = longestSize ? Math.floor(longestSize / 3) : Math.floor(size.height / 3) 
+
+   const sortedDataArray = Array.from(aggregated).sort(
+      (a: KeyValuePair, b: KeyValuePair) => descending(a[1], b[1])); 
+
+
+   const wedges = pie()(sortedDataArray.map((d: KeyValuePair) => d[1]))
+   const arcGenerator = arc().cornerRadius(3).padAngle(.003)
    const arcs = wedges.map((wedge) => arcGenerator({
       innerRadius: 0,
-      outerRadius: 200,
+      outerRadius: radius,
       startAngle: wedge.startAngle, 
       endAngle: wedge.endAngle
-   })).filter(Boolean) as string[]
+   })).filter(Boolean) as string[]; // Nulls really are filtered
 
+   // const getWedgeCategoryClassName = (index: number): string => {
+
+   // }
 
    return (
       <RightContainer>
-         Simple Pie Chart
-         <svg height={600} width={800}>
-            <g transform={`translate(400, 300)`} >
+         {title}
+         <svg height={size.height} width={size.width}>
+            <g transform={`translate(${center.x}, ${center.y})`} >
             { arcs.map((arc, idx) => (
-               <path key={idx} d={arc} />
+               <path key={idx} d={arc} fill={CategoryPaletteA[idx]}/>
             )) }
             </g>
          </svg>

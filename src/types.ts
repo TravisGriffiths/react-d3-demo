@@ -18,14 +18,19 @@ export const isDateString = (value: unknown): value is DateString =>  {
    return false
 }  
 
-export type Size = { 
+export interface Size { 
    height: number;
    width: number;
 }
 
-export type Datum = {
-   label: string, 
-   value: number,
+export interface Datum {
+   label: string;
+   value: number;
 }
 
 export type KeyValuePair = [string, number];
+
+export interface Point {
+   x: number;
+   y: number;
+}

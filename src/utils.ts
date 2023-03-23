@@ -2,6 +2,8 @@ import { CarDataSchema } from "./constants/data";
 import { Datum, KeyValuePair } from "./types";
 import { rank, descending } from "d3-array";
 
+export const sortDecending = (a: Datum, b: Datum) => descending(a.value, b.value)
+
 export const getSalesByManufacturer = (data: CarDataSchema[]): Map<string, number> => {
    const salesByManufacturer = new Map();
    data.forEach((datum) => {
@@ -16,11 +18,12 @@ export const getSalesByManufacturer = (data: CarDataSchema[]): Map<string, numbe
 }
 
 export const getTopNEntriesWithAggrigatedOther = (data: Map<string, number>, max: number): Map<string, number> => {
-   const aggregated = {...data};
+   const aggregated = new Map(data)
+
    const entries = Array.from(aggregated).map((entry: KeyValuePair) => 
       ({label: entry[0], value: entry[1]})
    );
-   const rankings = rank(entries, (a: Datum, b: Datum) => descending(a.value, b.value))
+   const rankings = rank(entries, sortDecending)
 
    let otherCategoryValue = 0
    rankings.forEach((rank, index) => {
@@ -32,3 +35,4 @@ export const getTopNEntriesWithAggrigatedOther = (data: Map<string, number>, max
    data.set('Others', otherCategoryValue)
    return aggregated
 }
+
