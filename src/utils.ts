@@ -1,5 +1,5 @@
 import { CarDataSchema } from "./constants/data";
-import { Datum, KeyValuePair } from "./types";
+import { DateString, Datum, KeyValuePair, NumberString } from "./types";
 import { rank, descending } from "d3-array";
 
 export const sortDecending = (a: Datum, b: Datum) => descending(a.value, b.value)
@@ -11,17 +11,24 @@ export const getSalesByManufacturer = (data: CarDataSchema[]): Map<string, numbe
          salesByManufacturer.set(datum.Manufacturer, 0);
       }
       const current = salesByManufacturer.get(datum.Manufacturer);
-      const sales = datum.Sales_in_thousands ? Number(datum.Sales_in_thousands) : 0
+      const sales = datum.Sales_in_thousands ? 
+         Number(datum.Sales_in_thousands)    : 
+         0
       salesByManufacturer.set(datum.Manufacturer, (current + sales))
    });
    return salesByManufacturer
 }
 
-export const getTopNEntriesWithAggrigatedOther = (data: Map<string, number>, max: number): Map<string, number> => {
+const KEY = 0;
+const VALUE = 1;
+
+export const getTopNEntriesWithAggrigatedOther = (
+   data: Map<string, number>, 
+   max: number): Map<string, number> => {
    const aggregated = new Map(data)
 
    const entries = Array.from(aggregated).map((entry: KeyValuePair) => 
-      ({label: entry[0], value: entry[1]})
+      ({label: entry[KEY], value: entry[VALUE]})
    );
    const rankings = rank(entries, sortDecending)
 
@@ -35,4 +42,24 @@ export const getTopNEntriesWithAggrigatedOther = (data: Map<string, number>, max
    data.set('Others', otherCategoryValue)
    return aggregated
 }
+
+export const isDefined = <V>(value: V | null | undefined): value is NonNullable<V> => 
+   [
+      (value !== null),
+      (value !== undefined)
+   ].every(Boolean) 
+
+export const isDateString = (value: unknown): value is DateString =>  {
+   if (typeof value === 'string') {
+      return isNaN(new Date(value).valueOf()) === false
+   }
+   return false
+}  
+
+export const isNumberString = (value: unknown): value is NumberString => 
+   [
+      (typeof value === 'string'),
+      (typeof Number(value) === 'number')
+   ].every(Boolean)
+
 

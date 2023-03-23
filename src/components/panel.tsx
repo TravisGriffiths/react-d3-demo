@@ -1,18 +1,22 @@
 import { LeftContainer } from "./containers";
 import React from "react";
-import styled from "styled-components";
 import { Copy } from "../types";
+import styled from "styled-components";
 
 type PanelProps = {
    copy: Copy;
 }
 
+const CopyBox = styled(LeftContainer)`
+   text-align: left;
+`
+
 const Panel: React.FC<PanelProps> = ({ copy }) => {
 
    return (
-      <LeftContainer>
+      <CopyBox>
          {copy}
-      </LeftContainer>
+      </CopyBox>
    )
 }
 
